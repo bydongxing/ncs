@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--scan:配置文件如果发生改变,将会被重新加载,scanPeriod:设置监测配置文件是否有修改的时间间隔 -->
+<configuration scan="true" scanPeriod="60 seconds">
+	<!-- 彩色日志依赖的渲染类 -->
+	<conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+	<conversionRule conversionWord="wex"
+					converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+	<conversionRule conversionWord="wEx"
+					converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+	<!-- 彩色日志格式 -->
+	<property name="CONSOLE_LOG_PATTERN"
+			  value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+	<!--输出到控制台-->
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+<!--		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>info</level>
+		</filter>-->
+		<encoder>
+			<pattern>${CONSOLE_LOG_PATTERN}</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+	<!--应用的名称 -->
+	    <property name="APPNAME" value="ncs-service" />
+		<!--应用的端口号 -->
+		<property name="PORT" value="8080" />
+		<!--日志文件本地存放目录路径-->
+		<property name="logBaseFolder" value="/opt/application/applogs/ncs-service" />
+		<!--日志文件名称的前缀部分 -->
+		<property name="logFileNamePrefix" value="${APPNAME}-${PORT}" />
+		<!--日志文件最小切割单位 -->
+		<property name="every_file_size" value="300MB" />
+		<!--日志文件保存时间 -->
+		<property name="every_his_size" value="30" />
+		<!--用来指定日志文件的上限大小,删除旧的日志 -->
+		<property name="every_max_size" value="20GB" />
+		<!-- 日志文件的编码 -->
+		<property name="log_charset" value="UTF-8" />
+		<!--|日志时间|线程id|端口号|应用名称|类名|方法名|日志级别|traceId |输入参数|输出参数|耗时|任意多个扩展字段|具体打印的msg内容然后换行-->
+		<property name="log_pattern" value="|%d{yyyy-MM-dd HH:mm:ss.SSS}|%t|${PORT}|${APPNAME}|%logger|%M|%p|%m%n"/>
+
+
+	<!-- 核心系统日志输出到文件，基于日志大小和时间归档 -->
+	<appender name="rollingFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">>
+			<fileNamePattern>${logBaseFolder}/${logFileNamePrefix}.%d{yyyy-MM-dd.HH}.%i.log</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>${every_file_size}</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			<maxHistory>${every_his_size}</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${log_pattern}</pattern>
+		</encoder>
+	</appender>
+	<!-- 异步输出基础数据日志 -->
+	<appender name="async" class="ch.qos.logback.classic.AsyncAppender">
+		<!-- 设置为0表示不丢失日志.默认值为20,当队列还剩20%容量时,则会丢弃TRACE、DEBUG、INFO级别的日志 -->
+		<discardingThreshold>0</discardingThreshold>
+		<!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+		<queueSize>92160</queueSize>
+		<!-- 添加到appender,最多只能添加一个 -->
+		<appender-ref ref="rollingFile" />
+	</appender>
+	<logger name="com.hp.ncs.service" level="INFO" />
+	<logger name="java.sql" level="DEBUG" />
+	<logger name="java.sql.ResultSet" level="DEBUG" />
+	<logger name="org.mybatis.spring" level="DEBUG" />
+	<logger name="org.apache.rocketmq" level="WARN" additivity="false" />
+	<logger name="org.apache.zookeeper" level="WARN" additivity="false" />
+	<logger name="org.apache.commons.httpclient.util.IdleConnectionHandler" level="WARN" additivity="false" />
+	<!--全局日志输出级别 -->
+	<root level="debug">
+		<appender-ref level="debug" ref="stdout" />
+		<appender-ref level="debug" ref="rollingFile" />
+	</root>
+</configuration>
